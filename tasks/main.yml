@@ -47,7 +47,7 @@
     register: users
 
   - name: Fetch SSH Public Keys
-    ansible.buitlin.fetch:
+    ansible.builtin.fetch:
       src: '{{ item.path }}/.ssh/id_rsa.pub'
       dest: '{{ role_path }}/files/{{ item.pw_name }}_id_rsa.pub'
     loop: '{{ users.files }}'

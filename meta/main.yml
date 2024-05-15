@@ -1,0 +1,28 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: ludus_linux_user_creation
+  author: PrymalInstynct
+  description: An Ansible Role that will create users on linux hosts in a Ludus Cyber Range
+  company: ''
+  license: GPLv3
+  min_ansible_version: "2.10"
+  platforms:
+    - name: EL 
+      versions:
+        - "all"
+    - name: Fedora
+      versions:
+        - "all"
+    - name: Debian
+      versions:
+        - "all"
+    - name: Ubuntu
+      versions:
+        - "all"
+  galaxy_tags:
+    - linux
+
+collections:
+  - community.general

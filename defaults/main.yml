@@ -1,0 +1,14 @@
+---
+# Role variables should all be prefaced with the name of the role to avoid
+# name conflicts with other roles
+ludus_linux_user_creation:
+  users:
+    - user1
+    - user2
+    - user3
+  admins:
+    - admin1
+    - admin2
+  # the default password is password hashed with `mkpasswd --method=sha-512`
+  password: '$6$DtCZ/a.46h/Ld7la$IJe.4Tt5lH0FMCiOil4l2ZwSu8fy0jR2e/lGWIJ7r4liQxtFBWiiRoGJGtMYyZJ2vyC/tPDgOVKcdkP31O1cm.'
+ludus_linux_user_creation_initial_host: false

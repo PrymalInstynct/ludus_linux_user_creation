@@ -1,0 +1,106 @@
+---
+- name: Gather facts if needed
+  ansible.builtin.setup:
+  when: ansible_os_family is not defined
+
+- name: Check for Linux
+  ansible.builtin.fail:
+    msg: This role only supports Linux Operating Systems
+  when:
+    - ansible_os_family == 'RedHat' or
+      ansible_os_family == 'Debian'
+
+- name: Initial System Block
+  block:
+  - name: Create Standard Users on initital hosts
+    ansible.builtin.user:
+      name: '{{ item }}'
+      create_home: true
+      generate_ssh_key: true
+      password: '{{ ludus_linux_user_creation.password }}'
+    loop:
+      - '{{ ludus_linux_user_creation.users }}'
+
+  - name: Create Admin Users on initital hosts
+    ansible.builtin.user:
+      name: '{{ item }}'
+      create_home: true
+      generate_ssh_key: true
+      password: '{{ ludus_linux_user_creation.password }}'
+    loop:
+      - '{{ ludus_linux_user_creation.admins }}'
+
+  - name: Update Admin Users sudo configuration
+    community.general.sudoers:
+      name: '{{ item }}'
+      user: '{{ item }}'
+      nopassword: true
+      commands: ALL
+    loop:
+      - '{{ ludus_linux_user_creation.admins }}'
+
+  - name: Identify System Users
+    ansible.builtin.find:
+      paths: /home
+      recurse: no
+      file_type: directory
+    register: users
+
+  - name: Fetch SSH Public Keys
+    ansible.buitlin.fetch:
+      src: '{{ item.path }}/.ssh/id_rsa.pub'
+      dest: '{{ role_path }}/files/{{ item.pw_name }}_id_rsa.pub'
+    loop: '{{ users.files }}'
+
+  when: ludus_linux_user_creation_initial_host | bool
+
+- name: Supplimental System Block
+  block:
+  - name: Create Standard Users on supplimental hosts
+    ansible.builtin.user:
+      name: '{{ item }}'
+      create_home: true
+      generate_ssh_key: false
+      password: '{{ ludus_linux_user_creation.password }}'
+    loop:
+      - '{{ ludus_linux_user_creation.users }}'
+
+  - name: Create Admin Users on supplimental hosts
+    ansible.builtin.user:
+      name: '{{ item }}'
+      create_home: true
+      generate_ssh_key: false
+      password: '{{ ludus_linux_user_creation.password }}'
+    loop:
+      - '{{ ludus_linux_user_creation.admins }}'
+
+  - name: Update Admin Users sudo configuration
+    community.general.sudoers:
+      name: '{{ item }}'
+      user: '{{ item }}'
+      nopassword: true
+      commands: ALL
+    loop:
+      - '{{ ludus_linux_user_creation.admins }}'
+
+  - name: Identify System Users
+    ansible.builtin.find:
+      paths: /home
+      recurse: no
+      file_type: directory
+    register: users
+
+  - name: Add SSH Public Key to Users Authorized Keys
+    ansible.builtin.copy:
+      src: '{{ item.pw_name }}_id_rsa.pub'
+      dest: '/home/{{ item.pw_name}}/.ssh/authorized_keys'
+      owner: '{{ item.pw_name }}'
+      group: '{{ item.gr_name }}'
+      mode: '0600'
+    loop: '{{ users.files }}'
+
+  when: not ludus_linux_user_creation_initial_host | bool
+
+- name: Success
+  ansible.builtin.debug:
+    msg: 'Linux User Creation Has Completed.'

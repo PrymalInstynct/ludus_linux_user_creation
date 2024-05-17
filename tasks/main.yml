@@ -11,6 +11,7 @@
     - ansible_os_family != "Debian"
 
 - name: Initial System Block
+  when: ludus_linux_user_creation_initial_host | bool
   block:
   - name: Create Standard Users on initial hosts
     ansible.builtin.user:
@@ -49,7 +50,7 @@
   - name: Identify System Users
     ansible.builtin.find:
       paths: /home
-      recurse: no
+      recurse: false
       file_type: directory
       excludes: 'debian'
     register: users
@@ -63,9 +64,8 @@
     loop_control:
       loop_var: initial_host_ssh_keys
 
-  when: ludus_linux_user_creation_initial_host | bool
-
 - name: Supplemental System Block
+  when: not ludus_linux_user_creation_initial_host | bool
   block:
   - name: Create Standard Users on supplemental hosts
     ansible.builtin.user:
@@ -104,7 +104,7 @@
   - name: Identify System Users
     ansible.builtin.find:
       paths: /home
-      recurse: no
+      recurse: false
       file_type: directory
       excludes: 'debian'
     register: users
@@ -123,15 +123,13 @@
   - name: Add SSH Public Key to Users Authorized Keys
     ansible.builtin.copy:
       src: '{{ role_path }}/files/{{ supplemental_host_ssh_keys.pw_name }}/id_rsa.pub'
-      dest: '/home/{{ supplemental_host_ssh_keys.pw_name}}/.ssh/authorized_keys'
+      dest: '/home/{{ supplemental_host_ssh_keys.pw_name }}/.ssh/authorized_keys'
       owner: '{{ supplemental_host_ssh_keys.pw_name }}'
       group: '{{ supplemental_host_ssh_keys.gr_name }}'
       mode: '0600'
     loop: '{{ users.files }}'
     loop_control:
       loop_var: supplemental_host_ssh_keys
-
-  when: not ludus_linux_user_creation_initial_host | bool
 
 - name: Success
   ansible.builtin.debug:

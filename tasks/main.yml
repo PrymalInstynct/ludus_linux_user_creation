@@ -13,123 +13,123 @@
 - name: Initial System Block
   when: ludus_linux_user_creation_initial_host | bool
   block:
-  - name: Create Standard Users on initial hosts
-    ansible.builtin.user:
-      name: '{{ initial_host_users }}'
-      create_home: true
-      generate_ssh_key: true
-      password: '{{ ludus_linux_user_creation.password }}'
-      skeleton: /etc/skel
-      shell: /bin/bash
-    loop: '{{ ludus_linux_user_creation.users }}'
-    loop_control:
-      loop_var: initial_host_users
+    - name: Create Standard Users on initial hosts
+      ansible.builtin.user:
+        name: '{{ initial_host_users }}'
+        create_home: true
+        generate_ssh_key: true
+        password: '{{ ludus_linux_user_creation.password }}'
+        skeleton: /etc/skel
+        shell: /bin/bash
+      loop: '{{ ludus_linux_user_creation.users }}'
+      loop_control:
+        loop_var: initial_host_users
 
-  - name: Create Admin Users on initial hosts
-    ansible.builtin.user:
-      name: '{{ initial_host_admins }}'
-      create_home: true
-      generate_ssh_key: true
-      password: '{{ ludus_linux_user_creation.password }}'
-      skeleton: /etc/skel
-      shell: /bin/bash
-    loop: '{{ ludus_linux_user_creation.admins }}'
-    loop_control:
-      loop_var: initial_host_admins
+    - name: Create Admin Users on initial hosts
+      ansible.builtin.user:
+        name: '{{ initial_host_admins }}'
+        create_home: true
+        generate_ssh_key: true
+        password: '{{ ludus_linux_user_creation.password }}'
+        skeleton: /etc/skel
+        shell: /bin/bash
+      loop: '{{ ludus_linux_user_creation.admins }}'
+      loop_control:
+        loop_var: initial_host_admins
 
-  - name: Update Admin Users sudo configuration
-    community.general.sudoers:
-      name: '{{ initial_host_sudo }}'
-      user: '{{ initial_host_sudo }}'
-      nopassword: true
-      commands: ALL
-    loop: '{{ ludus_linux_user_creation.admins }}'
-    loop_control:
-      loop_var: initial_host_sudo
+    - name: Update Admin Users sudo configuration
+      community.general.sudoers:
+        name: '{{ initial_host_sudo }}'
+        user: '{{ initial_host_sudo }}'
+        nopassword: true
+        commands: ALL
+      loop: '{{ ludus_linux_user_creation.admins }}'
+      loop_control:
+        loop_var: initial_host_sudo
 
-  - name: Identify System Users
-    ansible.builtin.find:
-      paths: /home
-      recurse: false
-      file_type: directory
-      excludes: 'debian'
-    register: users
+    - name: Identify System Users
+      ansible.builtin.find:
+        paths: /home
+        recurse: false
+        file_type: directory
+        excludes: 'debian'
+      register: users
 
-  - name: Fetch SSH Public Keys
-    ansible.builtin.fetch:
-      src: '{{ initial_host_ssh_keys.path }}/.ssh/id_rsa.pub'
-      dest: '{{ role_path }}/files/{{ initial_host_ssh_keys.pw_name }}/'
-      flat: true
-    loop: '{{ users.files }}'
-    loop_control:
-      loop_var: initial_host_ssh_keys
+    - name: Fetch SSH Public Keys
+      ansible.builtin.fetch:
+        src: '{{ initial_host_ssh_keys.path }}/.ssh/id_rsa.pub'
+        dest: '{{ role_path }}/files/{{ initial_host_ssh_keys.pw_name }}/'
+        flat: true
+      loop: '{{ users.files }}'
+      loop_control:
+        loop_var: initial_host_ssh_keys
 
 - name: Supplemental System Block
   when: not ludus_linux_user_creation_initial_host | bool
   block:
-  - name: Create Standard Users on supplemental hosts
-    ansible.builtin.user:
-      name: '{{ supplemental_host_users }}'
-      create_home: true
-      generate_ssh_key: false
-      password: '{{ ludus_linux_user_creation.password }}'
-      skeleton: /etc/skel
-      shell: /bin/bash
-    loop: '{{ ludus_linux_user_creation.users }}'
-    loop_control:
-      loop_var: supplemental_host_users
+    - name: Create Standard Users on supplemental hosts
+      ansible.builtin.user:
+        name: '{{ supplemental_host_users }}'
+        create_home: true
+        generate_ssh_key: false
+        password: '{{ ludus_linux_user_creation.password }}'
+        skeleton: /etc/skel
+        shell: /bin/bash
+      loop: '{{ ludus_linux_user_creation.users }}'
+      loop_control:
+        loop_var: supplemental_host_users
 
-  - name: Create Admin Users on supplemental hosts
-    ansible.builtin.user:
-      name: '{{ supplemental_host_admins }}'
-      create_home: true
-      generate_ssh_key: false
-      password: '{{ ludus_linux_user_creation.password }}'
-      skeleton: /etc/skel
-      shell: /bin/bash
-    loop: '{{ ludus_linux_user_creation.admins }}'
-    loop_control:
-      loop_var: supplemental_host_admins
+    - name: Create Admin Users on supplemental hosts
+      ansible.builtin.user:
+        name: '{{ supplemental_host_admins }}'
+        create_home: true
+        generate_ssh_key: false
+        password: '{{ ludus_linux_user_creation.password }}'
+        skeleton: /etc/skel
+        shell: /bin/bash
+      loop: '{{ ludus_linux_user_creation.admins }}'
+      loop_control:
+        loop_var: supplemental_host_admins
 
-  - name: Update Admin Users sudo configuration
-    community.general.sudoers:
-      name: '{{ supplemental_host_sudo }}'
-      user: '{{ supplemental_host_sudo }}'
-      nopassword: true
-      commands: ALL
-    loop: '{{ ludus_linux_user_creation.admins }}'
-    loop_control:
-      loop_var: supplemental_host_sudo
+    - name: Update Admin Users sudo configuration
+      community.general.sudoers:
+        name: '{{ supplemental_host_sudo }}'
+        user: '{{ supplemental_host_sudo }}'
+        nopassword: true
+        commands: ALL
+      loop: '{{ ludus_linux_user_creation.admins }}'
+      loop_control:
+        loop_var: supplemental_host_sudo
 
-  - name: Identify System Users
-    ansible.builtin.find:
-      paths: /home
-      recurse: false
-      file_type: directory
-      excludes: 'debian'
-    register: users
+    - name: Identify System Users
+      ansible.builtin.find:
+        paths: /home
+        recurse: false
+        file_type: directory
+        excludes: 'debian'
+      register: users
 
-  - name: Create .ssh folder
-    ansible.builtin.file:
-      path: '/home/{{ supplemental_host_user_dirs.pw_name }}/.ssh'
-      state: directory
-      owner: '{{ supplemental_host_user_dirs.pw_name }}'
-      group: '{{ supplemental_host_user_dirs.gr_name }}'
-      mode: '0700'
-    loop: '{{ users.files }}'
-    loop_control:
-      loop_var: supplemental_host_user_dirs
+    - name: Create .ssh folder
+      ansible.builtin.file:
+        path: '/home/{{ supplemental_host_user_dirs.pw_name }}/.ssh'
+        state: directory
+        owner: '{{ supplemental_host_user_dirs.pw_name }}'
+        group: '{{ supplemental_host_user_dirs.gr_name }}'
+        mode: '0700'
+      loop: '{{ users.files }}'
+      loop_control:
+        loop_var: supplemental_host_user_dirs
 
-  - name: Add SSH Public Key to Users Authorized Keys
-    ansible.builtin.copy:
-      src: '{{ role_path }}/files/{{ supplemental_host_ssh_keys.pw_name }}/id_rsa.pub'
-      dest: '/home/{{ supplemental_host_ssh_keys.pw_name }}/.ssh/authorized_keys'
-      owner: '{{ supplemental_host_ssh_keys.pw_name }}'
-      group: '{{ supplemental_host_ssh_keys.gr_name }}'
-      mode: '0600'
-    loop: '{{ users.files }}'
-    loop_control:
-      loop_var: supplemental_host_ssh_keys
+    - name: Add SSH Public Key to Users Authorized Keys
+      ansible.builtin.copy:
+        src: '{{ role_path }}/files/{{ supplemental_host_ssh_keys.pw_name }}/id_rsa.pub'
+        dest: '/home/{{ supplemental_host_ssh_keys.pw_name }}/.ssh/authorized_keys'
+        owner: '{{ supplemental_host_ssh_keys.pw_name }}'
+        group: '{{ supplemental_host_ssh_keys.gr_name }}'
+        mode: '0600'
+      loop: '{{ users.files }}'
+      loop_control:
+        loop_var: supplemental_host_ssh_keys
 
 - name: Success
   ansible.builtin.debug:

@@ -64,6 +64,17 @@
       loop_control:
         loop_var: initial_host_ssh_keys
 
+    - name: Add SSH Public Key to Users Authorized Keys on Initial Host
+      ansible.builtin.copy:
+        src: '{{ role_path }}/files/{{ initial_host_ssh_keys_copy.pw_name }}/id_rsa.pub'
+        dest: '/home/{{ initial_host_ssh_keys_copy.pw_name }}/.ssh/authorized_keys'
+        owner: '{{ initial_host_ssh_keys_copy.pw_name }}'
+        group: '{{ initial_host_ssh_keys_copy.gr_name }}'
+        mode: '0600'
+      loop: '{{ users.files }}'
+      loop_control:
+        loop_var: initial_host_ssh_keys_copy
+
 - name: Supplemental System Block
   when: not ludus_linux_user_creation_initial_host | bool
   block:

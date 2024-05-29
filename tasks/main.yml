@@ -76,7 +76,9 @@
         loop_var: initial_host_ssh_keys_copy
 
 - name: Supplemental System Block
-  when: not ludus_linux_user_creation_initial_host | bool
+  when:
+    - not ludus_linux_user_creation_initial_host | bool
+      not ludus_linux_user_creation_special_host | bool
   block:
     - name: Create Standard Users on supplemental hosts
       ansible.builtin.user:
@@ -141,6 +143,71 @@
       loop: '{{ users.files }}'
       loop_control:
         loop_var: supplemental_host_ssh_keys
+
+- name: Special System Block
+  when: ludus_linux_user_creation_special_host | bool
+  block:
+    - name: Create Standard Users on special hosts
+      ansible.builtin.user:
+        name: '{{ special_host_users }}'
+        create_home: true
+        generate_ssh_key: true
+        password: '{{ ludus_linux_user_creation.password }}'
+        skeleton: /etc/skel
+        shell: /bin/bash
+      loop: '{{ ludus_linux_user_creation.special_users }}'
+      loop_control:
+        loop_var: special_host_users
+
+    - name: Create Admin Users on special hosts
+      ansible.builtin.user:
+        name: '{{ special_host_admins }}'
+        create_home: true
+        generate_ssh_key: true
+        password: '{{ ludus_linux_user_creation.password }}'
+        skeleton: /etc/skel
+        shell: /bin/bash
+      loop: '{{ ludus_linux_user_creation.special_admins }}'
+      loop_control:
+        loop_var: special_host_admins
+
+    - name: Update Admin Users sudo configuration
+      community.general.sudoers:
+        name: '{{ special_host_sudo }}'
+        user: '{{ special_host_sudo }}'
+        nopassword: true
+        commands: ALL
+      loop: '{{ ludus_linux_user_creation.special_admins }}'
+      loop_control:
+        loop_var: special_host_sudo
+
+    - name: Identify System Users
+      ansible.builtin.find:
+        paths: /home
+        recurse: false
+        file_type: directory
+        excludes: 'debian'
+      register: users
+
+    - name: Fetch SSH Public Keys
+      ansible.builtin.fetch:
+        src: '{{ special_host_ssh_keys.path }}/.ssh/id_rsa.pub'
+        dest: '{{ role_path }}/files/{{ special_host_ssh_keys.pw_name }}/'
+        flat: true
+      loop: '{{ users.files }}'
+      loop_control:
+        loop_var: special_host_ssh_keys
+
+    - name: Add SSH Public Key to Users Authorized Keys on Special Host
+      ansible.builtin.copy:
+        src: '{{ role_path }}/files/{{ special_host_ssh_keys_copy.pw_name }}/id_rsa.pub'
+        dest: '/home/{{ special_host_ssh_keys_copy.pw_name }}/.ssh/authorized_keys'
+        owner: '{{ special_host_ssh_keys_copy.pw_name }}'
+        group: '{{ special_host_ssh_keys_copy.gr_name }}'
+        mode: '0600'
+      loop: '{{ users.files }}'
+      loop_control:
+        loop_var: special_host_ssh_keys_copy
 
 - name: Fetch SSH Host Keys
   ansible.builtin.fetch:

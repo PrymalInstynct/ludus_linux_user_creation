@@ -142,6 +142,28 @@
       loop_control:
         loop_var: supplemental_host_ssh_keys
 
+- name: Fetch SSH Host Keys
+  ansible.builtin.fetch:
+    src: '/etc/ssh/ssh_host_rsa_key.pub'
+    dest: '{{ role_path }}/files/{{ inventory_hostname }}/'
+    flat: true
+
+- name: Create Fact of Linux VM Hostnames
+  set_fact:
+    linux_vms: "{{ ((linux_vms | default([])) + [ ssh_host_key_hostname ]) }}"
+  loop: "{{ query('inventory_hostnames', 'linux_prod') }}"
+  loop_control:
+    loop_var: ssh_host_key_hostname
+
+- name: Add SSH Host Key to all Linux VMs
+  ansible.builtin.known_hosts:
+    path: /etc/ssh/ssh_known_hosts
+    name: '{{ vm_hostname }}'
+    key: '{{ vm_hostname }} {{ lookup("ansible.builtin.file", "{{ vm_hostname }}/ssh_host_rsa_key.pub") }}'
+  loop: '{{ linux_vms }}'
+  loop_control:
+    loop_var: vm_hostname
+
 - name: Success
   ansible.builtin.debug:
     msg: 'Linux User Creation Has Completed.'

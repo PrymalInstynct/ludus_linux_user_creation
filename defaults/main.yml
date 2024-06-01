@@ -11,7 +11,7 @@ ludus_linux_user_creation:
     - admin2
     - admin3
   special_users:
-    - user3
+    - user4
   special_admins:
     - admin4
   # the default password is password hashed with `mkpasswd --method=sha-512`

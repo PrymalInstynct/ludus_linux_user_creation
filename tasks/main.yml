@@ -209,6 +209,7 @@
 - name: Create New SSH Host Keys
   ansible.builtin.command:
     cmd: ssh-keygen -A
+  changed_when: false
 
 - name: Fetch SSH Host Keys
   ansible.builtin.fetch:
@@ -217,14 +218,14 @@
     flat: true
 
 - name: Create Fact of Linux Hostnames
-  set_fact:
+  ansible.builtin.set_fact:
     linux_hosts: "{{ ((linux_hosts | default([])) + [ ssh_host_key_hostname ]) }}"
   loop: "{{ query('inventory_hostnames', 'linux_prod') }}"
   loop_control:
     loop_var: ssh_host_key_hostname
 
 - name: Create Fact of Linux IP Addresses
-  set_fact:
+  ansible.builtin.set_fact:
     linux_ips: "{{ linux_ips | default([]) + [ hostvars[ ssh_host_key_ip ][ 'ansible_host' ] ] }}"
   loop: "{{ groups['linux_prod'] }}"
   loop_control:

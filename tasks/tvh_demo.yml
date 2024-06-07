@@ -1,5 +1,5 @@
 ---
-- name: Give user1 sudo on Debian03
+- name: Give user1 sudo on CZ-webserver02
   ansible.builtin.copy:
     content: |
       user1 ALL=NOPASSWD: ALL
@@ -7,23 +7,23 @@
     owner: root
     group: root
     mode: '0440'
-  when: '"CZ-debian03" in inventory_hostname'
+  when: '"CZ-webserver02" in inventory_hostname'
 
-- name: Fetch user3 Private Key from Debian01
+- name: Fetch user3 Private Key from CZ-wks01
   ansible.builtin.fetch:
     src: '/home/user3/.ssh/id_rsa'
     dest: '{{ role_path }}/files/user3/'
     flat: true
-  when: '"CZ-debian01" in inventory_hostname'
+  when: '"CZ-wks01" in inventory_hostname'
 
-- name: Copy user3 Private Key to Debian03
+- name: Copy user3 Private Key to CZ-webserver02
   ansible.builtin.copy:
     src: '{{ role_path }}/files/user3/id_rsa'
     dest: '/home/user3/.ssh/id_rsa'
     owner: 'user3'
     group: 'user3'
     mode: '0600'
-  when: '"CZ-debian03" in inventory_hostname'
+  when: '"CZ-webserver02" in inventory_hostname'
 
 - name: Special System Block
   when: ludus_linux_user_creation_special_host | bool
@@ -73,7 +73,7 @@
         group: 'user3'
         mode: '0700'
 
-    - name: Add user3 Public Key to debian4
+    - name: Add user3 Public Key to CZ-database01
       ansible.builtin.copy:
         src: '{{ role_path }}/files/user3/id_rsa.pub'
         dest: '/home/user3/.ssh/authorized_keys'
@@ -95,7 +95,7 @@
         path: /root/.ssh/id_rsa
       register: root_ssh_key
 
-    - name: Create root SSH Key Pair on debian4
+    - name: Create root SSH Key Pair on CZ-database01
       ansible.builtin.command:
         cmd: "ssh-keygen -b 2048 -t rsa -f /root/.ssh/id_rsa -q -N ''"
       when: not root_ssh_key.stat.exists

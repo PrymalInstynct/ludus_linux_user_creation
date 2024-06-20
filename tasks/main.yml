@@ -192,25 +192,6 @@
       loop_control:
         loop_var: special_host_sudo
 
-- name: Find SSH Host Keys on each system
-  ansible.builtin.find:
-    path: /etc/ssh
-    patterns: 'ssh_host_*'
-  register: orig_host_key
-
-- name: Delete Original SSH Host Keys
-  ansible.builtin.file:
-    path: '{{ orig_ssh_host_keys.path }}'
-    state: absent
-  loop: '{{ orig_host_key.files }}'
-  loop_control:
-    loop_var: orig_ssh_host_keys
-
-- name: Create New SSH Host Keys
-  ansible.builtin.command:
-    cmd: ssh-keygen -A
-  changed_when: false
-
 - name: Fetch SSH Host Keys
   ansible.builtin.fetch:
     src: '/etc/ssh/ssh_host_rsa_key.pub'
